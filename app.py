@@ -1,18 +1,20 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from stressrnn import StressRNN
-import re
+from ruaccent import RUAccent
 
 app = Flask(__name__)
 CORS(app)
 
-# Инициализация нейросети для расстановки ударений
-stress_model = StressRNN()
+# Инициализация с самыми лёгкими параметрами
+# tiny_mode=True отключает лишние правила и не загружает словарь
+accentizer = RUAccent()
+accentizer.load(omograph_model_size='tiny', use_dictionary=False, tiny_mode=True)
 
 def mark_stresses(text):
-    """Расставляет ударения в тексте с помощью StressRNN"""
+    """Расставляет ударения в тексте с помощью RUAccent"""
     try:
-        result = stress_model.put_stress(text)
+        # Метод put_stress возвращает текст с проставленными ударениями
+        result = accentizer.put_stress(text)
         return result
     except Exception as e:
         print(f"Ошибка при обработке: {e}")
@@ -41,7 +43,7 @@ def health():
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({
-        'message': 'API для расстановки ударений на основе StressRNN (нейросеть + словарь Зализняка)',
+        'message': 'API для расстановки ударений на основе RUAccent (лёгкая модель tiny)',
         'usage': 'POST /stress с телом {"text": "ваш текст"}'
     })
 
